@@ -66,7 +66,7 @@ plik.close();
 int main()
 {
 
-    int x=wczytaj_plik("C101");
+    int x=wczytaj_plik("C101"); // x zawira ilosc klientow
     for(int i=0; i<x; i++)
     cout << wektor[i]->Y << endl;
 
