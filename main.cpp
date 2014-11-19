@@ -10,7 +10,7 @@
 using namespace std;
 
 vector<Customer*> client(0);
-int marszruty,pojemnosc=0;
+int marszruty=0,pojemnosc=0;
 
 
 int wczytaj_plik(string file)
@@ -72,7 +72,30 @@ double odleglosc(int i_1, int i_2)
     return sqrt((X2-X1)*(X2-X1)+(Y2-Y1)*(Y2-Y1));
 }
 
+bool avalible(int start,int aktualny_czas,int pojemnosc_ciezarowki,double **tab, int koniec)
+{
+    //max(tab[0][i],wektor[i][4])+wektor[i][6]+tab[0][i])<=wektor[0][5] && wektor[i][3]<=pojemnosc)
+    int zamkniecie_depotu=client[0]->DUE_DATE;
+    double czas_dojazdu=tab[start][koniec]+aktualny_czas;
+    int gotowosc_klienta=client[koniec]->READY_TIME;
 
+    double dotarcie_do_celu;
+    if(czas_dojazdu>gotowosc_klienta)
+        dotarcie_do_celu=czas_dojazdu;
+    else
+        dotarcie_do_celu=gotowosc_klienta;
+    cout << "dotarcie: " << dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec] << " ";
+    if(dotarcie_do_celu<=client[koniec]->DUE_DATE)
+    {
+    if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu)
+        return 1;
+    else
+        return 0;
+    }
+    else
+        return 0;
+
+}
 
 int main()
 {
@@ -96,8 +119,17 @@ int main()
     }
 
 ///////////////////////////////////////////////////////////////////
+bool straznik=1;
+for(int i=1; i<clients; i++)
+{
+    if (!(avalible(0,0,pojemnosc,tab,i)))
+        {
+            straznik=0;
+            break;
+        }
+}
 
-
+ cout << straznik << endl;
 
 
 
