@@ -10,7 +10,7 @@
 using namespace std;
 
 vector<Customer*> client(0);
-int marszruty=0,pojemnosc=0;
+int marszruty=0,pojemnosc=0,clients=0;
 
 
 int wczytaj_plik(string file)
@@ -84,7 +84,7 @@ bool avalible(int start,int aktualny_czas,int pojemnosc_ciezarowki,double **tab,
         dotarcie_do_celu=czas_dojazdu;
     else
         dotarcie_do_celu=gotowosc_klienta;
-    cout << "dotarcie: " << dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec] << " ";
+ //   cout << "dotarcie: " << dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec] << " ";
     if(dotarcie_do_celu<=client[koniec]->DUE_DATE)
     {
     if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu)
@@ -97,10 +97,25 @@ bool avalible(int start,int aktualny_czas,int pojemnosc_ciezarowki,double **tab,
 
 }
 
+int najblizszy(int start, int aktualny_czas, int pojemnosc_ciezarowki, double **tab)
+{
+    int MIN=2147483647;
+    int x=0;
+    for(int i=1; i<clients; i++)
+    {
+        if (start!=i && tab[start][i]<MIN && !(client[i]->WYKONANY) && avalible(start,aktualny_czas,pojemnosc_ciezarowki,tab,i))
+        {
+            MIN=tab[start][i];
+            x=i;
+        }
+    }
+    return x;
+}
+
 int main()
 {
 
-    int clients=wczytaj_plik("C101"); // clients - liczba klientow
+    clients=wczytaj_plik("C101"); // clients - liczba klientow
 
 //////////////////////TABLICA ODLEGLOSCI///////////////////////////
 //by sprawdzic odleglosc miedzy miastem i a j wystarczy wywolac tab[i][j] lub tab[j][i]
@@ -129,7 +144,9 @@ for(int i=1; i<clients; i++)
         }
 }
 
- cout << straznik << endl;
+ cout << "czy isntieje wynik: " <<straznik << endl;
+
+ cout << najblizszy(3,0,pojemnosc,tab) << endl;
 
 
 
