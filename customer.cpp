@@ -21,5 +21,5 @@ Customer::Customer(int iid, int ix, int iy, int id, int ir, int istop, int iserv
 
 Customer::~Customer()
 {
-    
+    cout << "destruktor" << endl;
 }
