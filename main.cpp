@@ -9,7 +9,7 @@
 
 using namespace std;
 
-vector<Customer*> client;
+vector<Customer*> client; //globalny wektor zawierajacy wskaznik na obiekt customer
 int marszruty=0,pojemnosc=0,clients=0;
 
 
@@ -23,8 +23,6 @@ fstream plik;
 
     file+=".txt";
     plik.open(file.c_str(), ios::in);
-//  cout << (plik.good()) << endl;
-
 
 ////////////////////////////////////// czesc naglowkowa ////////////////////////////////////////
 
@@ -37,33 +35,24 @@ fstream plik;
 ////////////////////////////////////// czesc naglowkowa ////////////////////////////////////////
 
 
-i=0;
-int T[10];
-while( true )
+    i=0;
+    int T[10];
+    while( true )
     {
-
-
 
        for(j=0;j<7; j++)
           plik >> T[j];
-      /*  for(j=0; j<7; j++)
-           cout << T[j] << " ";
-       cout << endl;*/
-        customer = new Customer(T[0],T[1],T[2],T[3],T[4],T[5],T[6]);
+              customer = new Customer(T[0],T[1],T[2],T[3],T[4],T[5],T[6]);
         client.push_back(customer);
-
-
         i++;
-        if( !(plik.good()) ) // EOF?
+        if( !(plik.good()) ) // odczytuj dopoki nie ma EOF
              break;
     }
-
-
 plik.close();
-    return (i); //zwroc ilosc indeksow
+    return (i); //zwroc ilosc klientow
 }
 
-double odleglosc(int i_1, int i_2)
+double odleglosc(int i_1, int i_2) // pomocnicza funkcja mierzaca odleglosc miedzy dwoma punktami
 {
     int X1=(client[i_1]->X),Y1=client[i_1]->Y,X2=client[i_2]->X,Y2=client[i_2]->Y;
 
@@ -72,31 +61,33 @@ double odleglosc(int i_1, int i_2)
 }
 
 bool avalible(int start,double aktualny_czas,int pojemnosc_ciezarowki,double **tab, int koniec)
+// pomocnicza funkcja sprawdzajaca czy jest mozliwosc dojazdu
 {
-    //max(tab[0][i],wektor[i][4])+wektor[i][6]+tab[0][i])<=wektor[0][5] && wektor[i][3]<=pojemnosc)
+    // funkcja sprawdza czy klient nie zakonczyl przyjmowania towaru,
+    // czy ciezarowka ma odpowiednia ilosc towaru, oraz czy zdazy dojechac przed zamknieciem depotu
     int zamkniecie_depotu=client[0]->DUE_DATE;
     double czas_dojazdu=tab[start][koniec]+aktualny_czas;
     int gotowosc_klienta=client[koniec]->READY_TIME;
-    //max{(tab[start][koniec]+aktualny_czas,client[koniec]->READY_TIME);
     double dotarcie_do_celu;
+
     if(czas_dojazdu>gotowosc_klienta)
         dotarcie_do_celu=czas_dojazdu;
     else
         dotarcie_do_celu=gotowosc_klienta;
- //   cout << "dotarcie: " << dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec] << " ";
+
     if(dotarcie_do_celu<=client[koniec]->DUE_DATE)
     {
-    if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu && (pojemnosc_ciezarowki-client[koniec]->DEMAND>=0))
-        return 1;
-    else
-        return 0;
+        if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu && (pojemnosc_ciezarowki-client[koniec]->DEMAND>=0))
+            return 1;
+        else
+            return 0;
     }
     else
         return 0;
 
 }
 
-int najblizszy(int start, double aktualny_czas, int pojemnosc_ciezarowki, double **tab)
+int najblizszy(int start, double aktualny_czas, int pojemnosc_ciezarowki, double **tab) // glowna funkcja wyszukajaca najblizszego dostepnego klienta
 {
     int MIN=2147483647;
     int x=0;
@@ -123,25 +114,23 @@ int main()
         tab[i] = new double[clients];
 
     for(int i=0; i<clients; i++)
-    {
         for(int j=0; j<clients; j++)
-        {
             tab[i][j]=odleglosc(i,j);
-//            cout << tab[i][j] << " ";
-        }
-//        cout << endl;
-    }
 
 ///////////////////////////////////////////////////////////////////
-bool straznik=1;
-for(int i=1; i<clients; i++)
-{
-    if (!(avalible(0,0,pojemnosc,tab,i)))
+bool straznik=1; //  straznik sprawdza czy da sie dojechac do wszystkich
+                 // klientow wysylajac po jednej ciezarowce na klienta
+
+    for(int i=1; i<clients; i++)
+    {
+        if (!(avalible(0,0,pojemnosc,tab,i)))
         {
             straznik=0;
             break;
         }
-}
+    }
+
+////////////////////////////  GLOWNA FUNKCJA  ////////////////////////////////////
 if(straznik)
 {
     int wykonani=0;
@@ -149,24 +138,22 @@ if(straznik)
     double aktualny_czas=0,czas=0;
     double droga=0;
     vector<int> wyniki;
+    int i=0;
 
 
-    int i=0,k=0;
-
-
-while(wykonani!=(clients-1))
+while(wykonani!=(clients-1)) // dopoki liczba odwiedzonych nie bedzie rowna ilosc klientow
 {
-    if(aktualny==0)
+    if(aktualny==0) //jezeli jestes w DEPO
     {
-    czas+=aktualny_czas;
-    aktualny_czas=0;
-    pojemnosc_ciezarowki=pojemnosc;
-    ciezarowki+=1;
-    droga+=tab[aktualny][0];
+    czas+=aktualny_czas; //podlicz ogolny czas
+    aktualny_czas=0; //wyzeruj czas kolejnej marszruty
+    pojemnosc_ciezarowki=pojemnosc; //zaladuj ciezarowke
+    ciezarowki+=1; // wyslij kolejna ciezarowke
+    droga+=tab[aktualny][0]; // licz droge
     }
 
-    cel=najblizszy(aktualny,aktualny_czas,pojemnosc_ciezarowki,tab);
-    if(cel!=0)
+    cel=najblizszy(aktualny,aktualny_czas,pojemnosc_ciezarowki,tab); // ustaw nastepny cel
+    if(cel!=0) //nie dodajemy DEPOTU do wynikow
         {
            wyniki.push_back(1);
            wyniki[i]=cel;
@@ -175,14 +162,11 @@ while(wykonani!=(clients-1))
         else
         {
             wyniki.push_back(1);
-            wyniki[i]=-1;
+            wyniki[i]=-1; // do oddzielenia wynikow (problem z wektorem dwuwymiarowym)
             i++;
         }
 
-//   cout << "pojemnosc ciezarowki dla " << aktualny << " wynosi " << pojemnosc_ciezarowki <<endl;
-//    max{(tab[aktualny][cel]+aktualny_czas),client[cel]->READY_TIME});
-
-    if(tab[aktualny][cel]+aktualny_czas>client[cel]->READY_TIME)
+    if(tab[aktualny][cel]+aktualny_czas>client[cel]->READY_TIME) // czy ciezarowka dojedzie po READY_TIME
     {
         aktualny_czas+=tab[aktualny][cel]+client[cel]->SERVICE_TIME;
     }
@@ -192,52 +176,48 @@ while(wykonani!=(clients-1))
     }
     droga+=tab[aktualny][cel];
     pojemnosc_ciezarowki-=client[cel]->DEMAND;
-    client[cel]->WYKONANY=1;
+    client[cel]->WYKONANY=1; // flaga
     if (cel!=0)wykonani++;
     aktualny=cel;
 
-}
-droga+=tab[cel][0];
-aktualny_czas+=tab[cel][0];
-czas+=aktualny_czas;
-aktualny_czas>czas ? czas=aktualny_czas : 0;
-cout.setf( ios::fixed );
-cout.precision(5);
+} // WHILE - koniec wyszukiwania marszrut
 
-double suma=0;
-for(int i=1; i<clients; i++)
-    suma+=client[i]->DEMAND;
+    droga+=tab[cel][0];         //
+    aktualny_czas+=tab[cel][0]; // zliczanie ostatniego dojazdu
+    czas+=aktualny_czas;        //
+
+////////////////////////////////  ZAPISYWANIE WYNIKU  //////////////////////////////////////
 
 
     fstream plik2;
-    plik2.setf(cout.fixed);
+    plik2.setf(cout.fixed);  //notacja zwykla
     plik2.open( "Results.txt", std::ios::out);
     plik2 << ciezarowki << " ";
     plik2 << czas << fixed;
     plik2 << endl;
-int ile=i;
-cout << ile << endl;
 
+    int ile=i;
     for(int j=0; j<ile; j++)
     {
-    //    plik2 << j << ": ";
-        if (wyniki[j]!=-1)
-        plik2 << wyniki[j] << " ";
-    else
-        plik2 << endl;
+        if (wyniki[j]!=-1) // separator marszrut
+            plik2 << wyniki[j] << " ";
+        else
+            plik2 << endl;
     }
 
 
     plik2.close();
     for(i=0; i<clients; i++)
-        free(client[i]);
-
-
-
+        free(client[i]); //zwalnianie dynamicznych struktur
 
 } //IF STRAZNIK
 else
-    cout << -1 << endl;
+{
+    fstream plik2;
+    plik2.open("Results.txt",std::ios::out);
+    plik2 << -1;
+    plik2.close();
+}
 
 return 0;
 }
