@@ -11,6 +11,7 @@ public:
     int READY_TIME;
     int DUE_DATE;
     int SERVICE_TIME;
+    bool WYKONANY;
 
 
     Customer(int iid, int ix, int iy, int id, int ir, int istop, int iserv);
