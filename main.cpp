@@ -9,7 +9,7 @@
 
 using namespace std;
 
-vector<Customer*> client(0);
+vector<Customer*> client;
 int marszruty=0,pojemnosc=0,clients=0;
 
 
@@ -47,9 +47,9 @@ while( true )
 
        for(j=0;j<7; j++)
           plik >> T[j];
-        for(j=0; j<7; j++)
+      /*  for(j=0; j<7; j++)
            cout << T[j] << " ";
-       cout << endl;
+       cout << endl;*/
         customer = new Customer(T[0],T[1],T[2],T[3],T[4],T[5],T[6]);
         client.push_back(customer);
 
@@ -78,7 +78,7 @@ bool avalible(int start,int aktualny_czas,int pojemnosc_ciezarowki,double **tab,
     int zamkniecie_depotu=client[0]->DUE_DATE;
     double czas_dojazdu=tab[start][koniec]+aktualny_czas;
     int gotowosc_klienta=client[koniec]->READY_TIME;
-
+    //max{(tab[start][koniec]+aktualny_czas,client[koniec]->READY_TIME);
     double dotarcie_do_celu;
     if(czas_dojazdu>gotowosc_klienta)
         dotarcie_do_celu=czas_dojazdu;
@@ -87,7 +87,7 @@ bool avalible(int start,int aktualny_czas,int pojemnosc_ciezarowki,double **tab,
  //   cout << "dotarcie: " << dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec] << " ";
     if(dotarcie_do_celu<=client[koniec]->DUE_DATE)
     {
-    if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu)
+    if(dotarcie_do_celu+client[koniec]->SERVICE_TIME+tab[0][koniec]<=zamkniecie_depotu && pojemnosc_ciezarowki-client[koniec]->DEMAND>=0)
         return 1;
     else
         return 0;
@@ -144,9 +144,47 @@ for(int i=1; i<clients; i++)
         }
 }
 
- cout << "czy isntieje wynik: " <<straznik << endl;
+int wykonani=0;
+//avalible(start,aktualny_czas,pojemnosc_ciezarowki,tab,koniec);
+    int aktualny=0,pojemnosc_ciezarowki,cel,ciezarowki=0;
+    double aktualny_czas=0,czas=0;
+    double droga=0;
+while(wykonani!=(clients-1))
+{
+    if(aktualny==0)
+    {
+    aktualny_czas=0;
+    pojemnosc_ciezarowki=pojemnosc;
+    ciezarowki+=1;
+    droga+=tab[aktualny][0];
+    }
 
- cout << najblizszy(3,0,pojemnosc,tab) << endl;
+
+    cel=najblizszy(aktualny,aktualny_czas,pojemnosc_ciezarowki,tab);
+//   cout << "pojemnosc ciezarowki dla " << aktualny << " wynosi " << pojemnosc_ciezarowki <<endl;
+//    max{(tab[aktualny][cel]+aktualny_czas),client[cel]->READY_TIME});
+
+    if(tab[aktualny][cel]+aktualny_czas>client[cel]->READY_TIME)
+    {
+        aktualny_czas+=tab[aktualny][cel]+client[cel]->SERVICE_TIME;
+        czas+=tab[aktualny][cel]+client[cel]->SERVICE_TIME;
+    }
+    else
+    {
+        aktualny_czas+=client[cel]->READY_TIME+client[cel]->SERVICE_TIME;
+        czas+=client[cel]->READY_TIME+client[cel]->SERVICE_TIME;
+    }
+
+    pojemnosc_ciezarowki-=client[cel]->DEMAND;
+    client[cel]->WYKONANY=1;
+    if (cel!=0)wykonani++;
+    aktualny=cel;
+
+}
+    czas+=tab[aktualny][0];
+cout.setf( ios::fixed );
+cout.precision(3);
+cout << ciezarowki << " " << czas << endl;
 
 
 
