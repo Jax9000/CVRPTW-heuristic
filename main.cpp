@@ -208,7 +208,7 @@ while(wykonani!=(clients-1)) // dopoki liczba odwiedzonych nie bedzie rowna ilos
 
     plik2.close();
     for(i=0; i<clients; i++)
-        free(client[i]); //zwalnianie dynamicznych struktur
+        delete client[i]; //zwalnianie dynamicznych struktur
 
 } //IF STRAZNIK
 else
