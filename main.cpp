@@ -204,11 +204,7 @@ while(wykonani!=(clients-1)) // dopoki liczba odwiedzonych nie bedzie rowna ilos
         else
             plik2 << endl;
     }
-
-
     plik2.close();
-    for(i=0; i<clients; i++)
-        delete client[i]; //zwalnianie dynamicznych struktur
 
 } //IF STRAZNIK
 else
@@ -217,7 +213,7 @@ else
     plik2.open("Results.txt",std::ios::out);
     plik2 << -1;
     plik2.close();
-}
+ }
 
 return 0;
 }
