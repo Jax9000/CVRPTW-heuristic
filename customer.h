@@ -13,11 +13,9 @@ public:
     int SERVICE_TIME;
     bool WYKONANY;
 
-
     Customer(int iid, int ix, int iy, int id, int ir, int istop, int iserv);
     Customer();
     ~Customer();
-
 
 };
 
